@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوصلة القبلة الدقيقة | محمد العلالي</title>
+    <style>
+        :root { --gold: #d4af37; --green: #27ae60; --dark: #1a2a3a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #ffffff; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+        
+        .qibla-wrapper { position: relative; width: 280px; height: 280px; display: flex; justify-content: center; align-items: center; }
+        .outer-ring { position: absolute; width: 240px; height: 240px; border: 10px solid var(--green); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .target-arrow { position: absolute; top: -25px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid #e74c3c; z-index: 10; }
+        
+        .kaaba-pivot { position: absolute; width: 100%; height: 100%; will-change: transform; z-index: 5; }
+        .kaaba-icon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 45px; }
+        
+        .info-panel { text-align: center; margin-top: 40px; padding: 0 20px; }
+        #direction-text { font-size: 18px; font-weight: bold; color: var(--dark); margin-bottom: 10px; }
+        
+        .btn-designer { background: var(--gold); color: white; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 5px; }
+        .btn-calibrate { background: var(--dark); color: white; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; cursor: pointer; }
+        
+        .perfect { filter: drop-shadow(0 0 15px #ffd700); transform: translateX(-50%) scale(1.1); transition: 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div class="qibla-wrapper">
+        <div class="target-arrow"></div>
+        <div class="outer-ring"></div>
+        <div class="kaaba-pivot" id="kaabaPivot">
+            <div class="kaaba-icon" id="kaabaImg">🕋</div>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div id="direction-text">انتظر تحديد موقع مكة...</div>
+        <button class="btn-designer" onclick="alert('إهداء للجميع - المصمم محمد العلالي')">المصمم محمد العلالي</button>
+        <br>
+        <button class="btn-calibrate" onclick="location.reload()">إعادة ضبط المعايرة 🔄</button>
+    </div>
+
+<script>
+    const pivot = document.getElementById('kaabaPivot');
+    const kaabaImg = document.getElementById('kaabaImg');
+    const dirText = document.getElementById('direction-text');
+    
+    let qiblaAngle = 0;
+    let currentHeading = 0;
+    let targetHeading = 0;
+    const lerpSpeed = 0.08; 
+
+    const kaabaLoc = { lat: 21.4225, lng: 39.8262 };
+
+    function getQiblaAngle(lat, lng) {
+        const phiK = kaabaLoc.lat * Math.PI / 180;
+        const lambdaK = kaabaLoc.lng * Math.PI / 180;
+        const phi = lat * Math.PI / 180;
+        const lambda = lng * Math.PI / 180;
+        const y = Math.sin(lambdaK - lambda);
+        const x = Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(lambdaK - lambda);
+        // هذه هي الزاوية الصحيحة من الشمال الجغرافي باتجاه الكعبة
+        return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        qiblaAngle = getQiblaAngle(pos.coords.latitude, pos.coords.longitude);
+        dirText.innerText = "ضع الجوال مسطحاً وادر جسمك";
+        
+        // تفعيل المستشعرات بحسب نوع الجهاز
+        if (window.DeviceOrientationEvent) {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // للأيفون
+                DeviceOrientationEvent.requestPermission().then(state => {
+                    if (state === 'granted') window.addEventListener('deviceorientation', updateCompass, true);
+                });
+            } else {
+                // للأندرويد (نستخدم absolute لضمان الشمال الحقيقي)
+                window.addEventListener('deviceorientationabsolute', updateCompass, true);
+                window.addEventListener('deviceorientation', updateCompass, true);
+            }
+        }
+        animate();
+    }, () => { dirText.innerText = "يجب تفعيل الموقع (GPS)"; });
+
+    function updateCompass(e) {
+        // محاولة الحصول على الشمال الحقيقي بدقة
+        let heading = e.webkitCompassHeading || e.alpha;
+        
+        if (e.absolute === false && !e.webkitCompassHeading) {
+            // إذا كان الجهاز لا يدعم الشمال الحقيقي، نخبر المستخدم
+            dirText.innerText = "المستشعر غير دقيق، حرك الجوال برقم 8";
+        }
+
+        if (heading !== null) {
+            // للأندرويد: alpha يبدأ من الصفر عند اتجاه معين، نحتاج لقلبه
+            targetHeading = (e.webkitCompassHeading) ? heading : (360 - heading);
+        }
+    }
+
+    function animate() {
+        let diff = targetHeading - currentHeading;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        currentHeading += diff * lerpSpeed;
+
+        // الدوران: زاوية مكة - اتجاه الجوال الحالي
+        const finalRotation = qiblaAngle - currentHeading;
+        pivot.style.transform = `rotate(${finalRotation}deg)`;
+
+        const checkMatch = Math.abs((finalRotation % 360 + 360) % 360);
+        if (checkMatch < 5 || checkMatch > 355) {
+            kaabaImg.classList.add('perfect');
+            dirText.innerText = "أنت باتجاه القبلة ✅";
+            dirText.style.color = "var(--green)";
+        } else {
+            kaabaImg.classList.remove('perfect');
+            dirText.innerText = "وجه مقدمة الجوال للسهم";
+            dirText.style.color = "var(--dark)";
+        }
+        requestAnimationFrame(animate);
+    }
+</script>
+</body>
+</html>
