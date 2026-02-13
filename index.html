@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوصلة القبلة الذكية | محمد العلالي</title>
+    <title>بوصلة القبلة الاحترافية | محمد العلالي</title>
     <style>
         :root {
-            --gold-gradient: linear-gradient(145deg, #ffd700, #b8860b, #fff7ad, #8a6d3b);
-            --green-gradient: linear-gradient(145deg, #2ecc71, #27ae60, #a2f4c5, #1e8449);
-            --bg-color: #f0f0f0;
+            --gold-frame: linear-gradient(145deg, #ffd700, #b8860b, #fff7ad, #8a6d3b);
+            --green-glow: linear-gradient(145deg, #2ecc71, #27ae60, #a2f4c5, #1e8449);
+            --dark-steel: #1a2a3a;
         }
 
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: var(--bg-color);
+            background: #e6e6e6;
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -22,88 +22,109 @@
             min-height: 100vh;
         }
 
-        /* الإطار الخارجي - هو الذي سيتغير لونه */
+        /* حاوية الساعة مع تأثير البروز ثلاثي الأبعاد */
         .compass-frame {
             position: relative;
-            width: 320px;
-            height: 320px;
-            background: var(--gold-gradient); /* اللون الافتراضي ذهبي */
+            width: 310px;
+            height: 310px;
+            background: var(--gold-frame);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            transition: background 0.5s ease, transform 0.3s ease;
+            /* ظل خارجي للبروز وظل داخلي للعمق */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.3),
+                inset 0 -8px 15px rgba(0,0,0,0.2),
+                inset 0 8px 15px rgba(255,255,255,0.4);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1;
         }
 
-        /* الحالة عندما تكون القبلة صحيحة */
+        /* تأثير التوهج الأخضر القوي عند النجاح */
         .compass-frame.success {
-            background: var(--green-gradient) !important;
+            background: var(--green-glow) !important;
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+            box-shadow: 
+                0 0 40px rgba(46, 204, 113, 0.8),
+                0 20px 60px rgba(0,0,0,0.3);
         }
 
+        /* وجه الساعة الداخلي مع تأثير زجاجي */
         .compass-face {
-            width: 285px;
-            height: 285px;
-            background: radial-gradient(circle, #ffffff 60%, #e8e8e8 100%);
+            width: 275px;
+            height: 275px;
+            background: radial-gradient(circle, #ffffff 50%, #d9d9d9 100%);
             border-radius: 50%;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px solid rgba(0,0,0,0.1);
+            border: 2px solid rgba(0,0,0,0.05);
+            overflow: hidden;
         }
 
-        .north-arrow {
+        /* سهم الاتجاه الثابت (مقدمة الجوال) */
+        .north-pointer {
             position: absolute;
-            top: 5px;
+            top: 10px;
             z-index: 10;
             text-align: center;
         }
-        .north-arrow .arrow {
+        .north-pointer .arrow {
             width: 0; height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 25px solid #d91e18;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-bottom: 25px solid #ff0000;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
 
+        /* الكعبة المتحركة */
         .kaaba-pivot {
             position: absolute;
             width: 100%; height: 100%;
             will-change: transform;
             z-index: 5;
         }
-
         .kaaba-icon {
             position: absolute;
-            top: 40px;
+            top: 45px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 45px;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+            font-size: 50px;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4));
         }
 
-        .center-pin {
-            width: 18px; height: 18px;
-            background: radial-gradient(circle, #fff, #999);
-            border-radius: 50%;
-            z-index: 20;
-            border: 1px solid #777;
+        /* معلومات أسفل الساعة */
+        .info-panel {
+            text-align: center;
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .info { margin-top: 40px; text-align: center; }
-        
+        #status { font-weight: bold; font-size: 1.1rem; color: #333; height: 30px; }
+
         .btn-designer {
-            background: #1a2a3a;
-            color: #d4af37;
-            border: 2px solid #d4af37;
-            padding: 12px 30px;
+            background: var(--dark-steel);
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            padding: 12px 35px;
             border-radius: 50px;
             font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             transition: 0.3s;
+        }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: #777;
+            text-decoration: underline;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -111,22 +132,23 @@
 
     <div class="compass-frame" id="mainFrame">
         <div class="compass-face">
-            <div class="north-arrow">
+            <div class="north-pointer">
                 <div class="arrow"></div>
-                <span style="color:#d91e18; font-weight:bold;">N</span>
+                <div style="color:red; font-weight:bold; font-size:20px;">N</div>
             </div>
             
             <div class="kaaba-pivot" id="kaabaPivot">
                 <div class="kaaba-icon">🕋</div>
             </div>
 
-            <div class="center-pin"></div>
+            <div style="width:18px; height:18px; background:radial-gradient(circle, #fff, #888); border-radius:50%; z-index:20; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
         </div>
     </div>
 
-    <div class="info">
-        <p id="status" style="font-weight: bold;">جاري تحديد القبلة...</p>
+    <div class="info-panel">
+        <div id="status">جاري الاتصال بالأقمار الصناعية...</div>
         <button class="btn-designer" onclick="alert('إهداء للجميع - المصمم محمد العلالي')">المصمم محمد العلالي</button>
+        <button class="btn-reset" onclick="location.reload()">إعادة معايرة الاتجاه 🔄</button>
     </div>
 
 <script>
@@ -148,7 +170,7 @@
         const x = Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(lambdaK - lambda);
         qiblaAngle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 
-        status.innerText = "أدر الجوال حتى يتغير لون الإطار للأخضر";
+        status.innerText = "أدر الجوال باتجاه السهم";
         
         window.addEventListener('deviceorientationabsolute', (e) => {
             if (e.alpha !== null) targetHeading = 360 - e.alpha;
@@ -158,27 +180,29 @@
         }, true);
         
         animate();
-    }, () => status.innerText = "يرجى تفعيل الموقع");
+    }, () => status.innerText = "يرجى تفعيل الموقع (GPS)");
 
     function animate() {
         let diff = targetHeading - currentHeading;
         if (diff > 180) diff -= 360;
         if (diff < -180) diff += 360;
-        currentHeading += diff * 0.1;
+        currentHeading += diff * 0.08;
 
         const finalRotation = qiblaAngle - currentHeading;
         pivot.style.transform = `rotate(${finalRotation}deg)`;
 
-        // التحقق من التطابق مع السهم (بين الدرجة -5 و 5)
+        // التحقق من الدقة لتفعيل التوهج الأخضر
         const checkMatch = Math.abs((finalRotation % 360 + 360) % 360);
         
         if (checkMatch < 5 || checkMatch > 355) {
-            mainFrame.classList.add('success');
-            status.innerText = "تم تحديد القبلة بنجاح ✅";
-            status.style.color = "#27ae60";
+            if (!mainFrame.classList.contains('success')) {
+                mainFrame.classList.add('success');
+                status.innerText = "تم تحديد القبلة ✅";
+                status.style.color = "#27ae60";
+            }
         } else {
             mainFrame.classList.remove('success');
-            status.innerText = "أدر الجوال باتجاه السهم";
+            status.innerText = "أدر الجوال باتجاه السهم الأحمر";
             status.style.color = "#333";
         }
 
